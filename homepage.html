@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Groceries List Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.onload = function () {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("You must login to access this page.");
+          window.location.href = "index.html";
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <h1 id="main-title">Welcome to Groceries List Manager</h1>
+    <p>You are logged in!</p>
+    <div id="logout-button">
+      <button onclick="handleLogout()">Logout</button>
+    </div>
+    <div id="creating-list">
+      <h2>Create Your Own List</h2>
+      <input
+        type="text"
+        id="newItemInput"
+        placeholder="Enter a grocery item"
+        onkeypress="handleEnter(event)"
+      />
+      <button onclick="addToOwnList()">Add to My List</button>
+      <ul id="ownList">
+        <!-- User-created grocery items will appear here -->
+      </ul>
+    </div>
+    <!-- Access and select from your own list -->
+    <div id="my-list">
+      <h2>My Grocery List</h2>
+      <ul id="myList">
+        <!-- Items from user's own list for selection -->
+      </ul>
+      <button onclick="addToShoppingListFromMyList()">
+        Add Selected to Shopping List
+      </button>
+    </div>
+
+    <!-- Current shopping list -->
+    <div id="shopping-list">
+      <h2>Shopping List</h2>
+      <ul id="shoppingList">
+        <!-- Shopping list items will appear here -->
+      </ul>
+    </div>
+
+    <script>
+      function handleLogout() {
+        window.location.href = "index.html";
+      }
+      async function loadList() {
+        const token = localStorage.getItem("token"); // Retrieve the JWT
+        if (!token) {
+          alert("You are not logged in!");
+          window.location.href = "index.html";
+          return;
+        }
+
+        const response = await fetch("http://localhost:5000/get-list", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const items = await response.json();
+          const ownList = document.getElementById("ownList");
+          items.forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            ownList.appendChild(li);
+          });
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.message}`);
+        }
+      }
+
+      // Call loadList when the page loads
+      window.onload = function () {
+        loadList();
+      };
+
+      function addToOwnList() {
+        const newItemInput = document.getElementById("newItemInput");
+        const ownList = document.getElementById("ownList");
+        const myList = document.getElementById("myList");
+
+        if (newItemInput.value.trim() !== "") {
+          // Create a new list item for the user's own list
+          const li = document.createElement("li");
+          li.innerHTML = `<input type='checkbox' value='${newItemInput.value}'> ${newItemInput.value}`;
+
+          // Add the new item to both the own list and selectable list
+          ownList.appendChild(li.cloneNode(true));
+          myList.appendChild(li);
+
+          // Clear the input field
+          newItemInput.value = "";
+        }
+      }
+
+      function addToShoppingListFromMyList() {
+        const myList = document.getElementById("myList");
+        const shoppingList = document.getElementById("shoppingList");
+
+        // Loop through each item in the user's own list
+        const items = myList.querySelectorAll('input[type="checkbox"]');
+        items.forEach((item) => {
+          if (item.checked) {
+            // Create a new list item for the shopping list
+            const li = document.createElement("li");
+            li.textContent = item.value;
+
+            // Add the new item to the shopping list
+            shoppingList.appendChild(li);
+
+            // Uncheck the checkbox
+            item.checked = false;
+          }
+        });
+      }
+
+      function handleEnter(event) {
+        if (event.key === "Enter") {
+          addToOwnList();
+        }
+      }
+
+      async function saveList() {
+        const items = Array.from(document.querySelectorAll("#ownList li")).map(
+          (li) => li.textContent
+        );
+
+        const token = localStorage.getItem("token"); // Retrieve the JWT
+        if (!token) {
+          alert("You are not logged in!");
+          window.location.href = "index.html";
+          return;
+        }
+
+        const response = await fetch("http://localhost:5000/save-list", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ items }),
+        });
+
+        if (response.ok) {
+          alert("List saved successfully!");
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.message}`);
+        }
+      }
+    </script>
+  </body>
+</html>
