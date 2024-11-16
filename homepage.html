@@ -16,7 +16,7 @@
     </script>
   </head>
   <body>
-    <h1 id="main-title">Welcome to Groceries List Manager</h1>
+    <h1 id="main-title">Welcome to the Groceries List Manager</h1>
     <p>You are logged in!</p>
     <div id="logout-button">
       <button onclick="handleLogout()">Logout</button>
@@ -54,11 +54,37 @@
     </div>
 
     <script>
+      async function getUserId() {
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/user-info",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const userId = data.userId;
+
+          // Update the header with the userId
+          const mainTitle = document.getElementById("main-title");
+          mainTitle.textContent = `Welcome to Groceries List Manager, ${userId}`;
+          alert("Got userID.");
+        } else {
+          alert("Error fetching user info.");
+        }
+      }
+
       function handleLogout() {
         window.location.href = "index.html";
       }
+
       async function loadList() {
-        const token = localStorage.getItem("token"); // Retrieve the JWT
+        const token = localStorage.getItem("token");
         if (!token) {
           alert("You are not logged in!");
           window.location.href = "index.html";
@@ -78,9 +104,12 @@
         if (response.ok) {
           const items = await response.json();
           const ownList = document.getElementById("ownList");
+          ownList.innerHTML = ""; // Clear existing items
+
           items.forEach((item) => {
             const li = document.createElement("li");
-            li.textContent = item;
+            li.innerHTML = `<input type='checkbox' value='${item}'> ${item} 
+                      <button onclick="removeFromOwnList(this)">Remove</button>`;
             ownList.appendChild(li);
           });
         } else {
@@ -97,39 +126,62 @@
       function addToOwnList() {
         const newItemInput = document.getElementById("newItemInput");
         const ownList = document.getElementById("ownList");
-        const myList = document.getElementById("myList");
 
-        if (newItemInput.value.trim() !== "") {
-          // Create a new list item for the user's own list
-          const li = document.createElement("li");
-          li.innerHTML = `<input type='checkbox' value='${newItemInput.value}'> ${newItemInput.value}`;
-
-          // Add the new item to both the own list and selectable list
-          ownList.appendChild(li.cloneNode(true));
-          myList.appendChild(li);
-
-          // Clear the input field
-          newItemInput.value = "";
+        const newItemValue = newItemInput.value.trim();
+        if (!newItemValue) {
+          alert("Item cannot be empty!");
+          return;
         }
+
+        // Check for duplicates in the current list
+        const existingItems = Array.from(ownList.querySelectorAll("li")).map(
+          (li) => li.textContent.split("Remove")[0].trim() // Exclude "Remove" from the text
+        );
+
+        if (existingItems.includes(newItemValue)) {
+          alert("This item already exists in your list!");
+          return;
+        }
+
+        const li = document.createElement("li");
+        li.innerHTML = `<input type='checkbox' value='${newItemValue}'> ${newItemValue} 
+                  <button onclick="removeFromOwnList(this)">Remove</button>`;
+        ownList.appendChild(li);
+
+        newItemInput.value = "";
+
+        saveList(); // Save the updated list
       }
 
+      window.onload = function () {
+        loadList();
+
+        window.addEventListener("beforeunload", () => {
+          saveList();
+        });
+      };
+
       function addToShoppingListFromMyList() {
-        const myList = document.getElementById("myList");
+        const myList = document.getElementById("ownList");
         const shoppingList = document.getElementById("shoppingList");
 
-        // Loop through each item in the user's own list
         const items = myList.querySelectorAll('input[type="checkbox"]');
         items.forEach((item) => {
           if (item.checked) {
-            // Create a new list item for the shopping list
-            const li = document.createElement("li");
-            li.textContent = item.value;
+            const existingItems = Array.from(
+              shoppingList.querySelectorAll("li")
+            ).map((li) => li.textContent.split("Remove")[0].trim()); // Exclude "Remove"
 
-            // Add the new item to the shopping list
-            shoppingList.appendChild(li);
+            if (!existingItems.includes(item.value.trim())) {
+              const li = document.createElement("li");
+              li.innerHTML = `${item.value} 
+                        <button onclick="removeFromShoppingList(this)">Remove</button>`;
+              shoppingList.appendChild(li);
+            } else {
+              alert(`${item.value} is already in your shopping list!`);
+            }
 
-            // Uncheck the checkbox
-            item.checked = false;
+            item.checked = false; // Uncheck the checkbox
           }
         });
       }
@@ -140,9 +192,49 @@
         }
       }
 
+      async function removeFromOwnList(button) {
+        const li = button.parentElement;
+        const itemText = li.textContent.split("Remove")[0].trim();
+        console.log("Attempting to remove item:", itemText); // Debugging
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("You are not logged in!");
+          window.location.href = "index.html";
+          return;
+        }
+
+        const response = await fetch(
+          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/remove-item",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ item: itemText }),
+          }
+        );
+
+        if (response.ok) {
+          console.log("Item removed successfully from backend");
+          li.remove();
+          alert("Item removed successfully!");
+        } else {
+          const errorData = await response.json();
+          console.error("Error removing item:", errorData);
+          alert(`Error: ${errorData.message}`);
+        }
+      }
+
+      function removeFromShoppingList(button) {
+        const li = button.parentElement; // Get the list item
+        li.remove(); // Remove it from the DOM
+      }
+
       async function saveList() {
         const items = Array.from(document.querySelectorAll("#ownList li")).map(
-          (li) => li.textContent
+          (li) => li.textContent.split("Remove")[0].trim() // Extract text before "Remove"
         );
 
         const token = localStorage.getItem("token"); // Retrieve the JWT
@@ -160,12 +252,12 @@
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ items }),
+            body: JSON.stringify({ items }), // Save only clean item names
           }
         );
 
         if (response.ok) {
-          alert("List saved successfully!");
+          //   alert("List saved successfully!");
         } else {
           const errorData = await response.json();
           alert(`Error: ${errorData.message}`);

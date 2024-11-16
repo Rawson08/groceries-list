@@ -6,6 +6,10 @@
         box-sizing: border-box;
     }
 
+    #own-list {
+        
+    }
+
     h1, h2, #my-list, #shopping-list, #creating-list {
         text-align: center;
     }
