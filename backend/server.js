@@ -138,6 +138,7 @@ app.post("/save-list", async (req, res) => {
   
   app.post("/remove-item", async (req, res) => {
     const { userId, item } = req.body;
+  
     console.log("Request to remove item:", item, "for user:", userId); // Debugging
   
     if (!userId || !item) {
@@ -147,7 +148,7 @@ app.post("/save-list", async (req, res) => {
     try {
       await GroceryList.updateOne(
         { userId },
-        { $pull: { items: item } }
+        { $pull: { items: item } } // `$pull` removes the item from the array
       );
       console.log("Item removed successfully from database"); // Debugging
       res.status(200).json({ message: "Item removed successfully" });
@@ -156,6 +157,7 @@ app.post("/save-list", async (req, res) => {
       res.status(500).json({ message: "Error removing item", error });
     }
   });
+  
   
   
 
