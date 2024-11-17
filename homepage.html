@@ -86,7 +86,26 @@
         });
       };
 
-      function handleLogout() {
+      async function handleLogout() {
+        // Optional: Notify the backend (if required)
+        const token = localStorage.getItem("token");
+        if (token) {
+          await fetch(
+            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/logout",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          ).catch((err) => console.error("Error notifying backend:", err));
+        }
+
+        // Clear the token from localStorage
+        localStorage.removeItem("token");
+
+        // Redirect to the login page
+        alert("You have been logged out successfully.");
         window.location.href = "index.html";
       }
 
@@ -269,7 +288,7 @@
         );
 
         if (response.ok) {
-          alert("List saved successfully!");
+          // alert("List saved successfully!");
         } else {
           const errorData = await response.json();
           alert(`Error: ${errorData.message}`);
