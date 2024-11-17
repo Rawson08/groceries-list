@@ -162,7 +162,7 @@
 
         // Check for duplicates in the current list
         const existingItems = Array.from(ownList.querySelectorAll("li")).map(
-          (li) => li.textContent.split("Remove")[0].trim() // Exclude "Remove" from the text
+          (li) => li.textContent.split("Remove")[0].trim().toLowerCase // Exclude "Remove" from the text
         );
 
         if (existingItems.includes(newItemValue)) {
