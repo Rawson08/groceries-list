@@ -165,7 +165,7 @@
           (li) => li.textContent.split("Remove")[0].trim().toLowerCase // Exclude "Remove" from the text
         );
 
-        if (existingItems.includes(newItemValue)) {
+        if (existingItems.includes(newItemValue.toLowerCase)) {
           alert("This item already exists in your list!");
           return;
         }
