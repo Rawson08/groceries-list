@@ -96,9 +96,9 @@ app.post("/login", async (req, res) => {
 app.post("/save-list", async (req, res) => {
     const { userId, items } = req.body;
   
-    if (!userId || !items) {
-      return res.status(400).json({ message: "User ID and items are required" });
-    }
+    // if (!userId || !items) {
+    //   return res.status(400).json({ message: "User ID and items are required" });
+    // }
   
     try {
       // Filter duplicates
@@ -168,7 +168,7 @@ app.post("/save-list", async (req, res) => {
     }
   
     try {
-      const decoded = jwt.verify(token, "your-secret-key"); // Use your secret key
+      const decoded = jwt.verify(token, SECRET_KEY); // Use your secret key
       res.status(200).json({ userId: decoded.id });
     } catch (error) {
       res.status(401).json({ message: "Invalid token" });
