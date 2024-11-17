@@ -68,11 +68,11 @@
 
         if (response.ok) {
           const data = await response.json();
-          const userId = data.userId;
+          const username = data.username; // Get the username from the response
 
-          // Update the header with the userId
+          // Update the header with the username
           const mainTitle = document.getElementById("main-title");
-          mainTitle.textContent = `Welcome to Groceries List Manager, ${userId}`;
+          mainTitle.textContent = `Welcome to Groceries List Manager, ${username}`;
         } else {
           alert("Error fetching user info.");
         }
