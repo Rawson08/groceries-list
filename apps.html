@@ -28,13 +28,17 @@
 
         if (response.ok) {
           const data = await response.json();
-          const username = data.username;
+          const username = capitalizeFirstLetter(data.username);
           document.getElementById(
             "welcome-message"
           ).textContent = `Welcome, ${username}`;
         } else {
           alert("Error fetching user details.");
         }
+      }
+
+      function capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
       }
 
       function navigateToApp(appUrl) {

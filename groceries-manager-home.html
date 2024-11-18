@@ -68,7 +68,7 @@
 
         if (response.ok) {
           const data = await response.json();
-          const username = data.username; // Get the username from the response
+          const username = capitalizeFirstLetter(data.username); // Get the username from the response
 
           // Update the header with the username
           const mainTitle = document.getElementById("main-title");
@@ -78,6 +78,9 @@
         }
       }
 
+      function capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
       window.onload = function () {
         getUserId(); // Fetch and display user ID
         checkLogin();
