@@ -38,7 +38,7 @@
           const data = await response.json();
           localStorage.setItem("token", data.token); // Save token to local storage
           //   alert("Login successful!");
-          window.location.href = "homepage.html";
+          window.location.href = "groceries-manager-home.html";
         } else {
           const errorData = await response.json();
           alert(`Error: ${errorData.message}`);
