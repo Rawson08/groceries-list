@@ -126,7 +126,7 @@ app.post("/save-list", async (req, res) => {
       const list = await GroceryList.findOne({ userId });
   
       if (!list) {
-        return res.status(404).json({ message: "List not found" });
+        return res.status(200).json({ items: [] });
       }
   
       res.status(200).json(list);

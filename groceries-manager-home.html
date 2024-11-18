@@ -123,42 +123,49 @@
 
       async function loadList() {
         const token = localStorage.getItem("token");
-        // if (!localStorage.getItem("token")) {
-        //   alert("You are not logged in!");
-        //   window.location.href = "index.html";
-        //   return;
-        // }
 
         // Decode userId from the token
         const base64Url = token.split(".")[1];
         const decodedToken = JSON.parse(atob(base64Url)); // Decode JWT payload
         const userId = decodedToken.id;
 
-        const response = await fetch(
-          `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        try {
+          const response = await fetch(
+            `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const listData = await response.json();
+            const ownList = document.getElementById("ownList");
+            ownList.innerHTML = ""; // Clear existing items
+
+            // Populate the list if items exist
+            if (listData.items && listData.items.length > 0) {
+              listData.items.forEach((item) => {
+                const li = document.createElement("li");
+                const id = `item-${Math.random().toString(36).substr(2, 9)}`; // Generate unique ID
+
+                li.innerHTML = `
+              <input type="checkbox" id="${id}" value="${item}">
+              <label for="${id}">${capitalizeFirstLetter(item)}</label> 
+              <button onclick="removeFromOwnList(this)">Remove</button>
+          `;
+                ownList.appendChild(li);
+              });
+            }
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message}`);
           }
-        );
-
-        if (response.ok) {
-          const listData = await response.json();
-          const ownList = document.getElementById("ownList");
-          ownList.innerHTML = ""; // Clear existing items
-
-          // Populate the list
-          listData.items.forEach((item) => {
-            const li = document.createElement("li");
-            li.innerHTML = `<input type='checkbox' value='${item}'> ${item} 
-            <button onclick="removeFromOwnList(this)">Remove</button>`;
-            ownList.appendChild(li);
-          });
-        } else {
-          const errorData = await response.json();
-          alert(`Error: ${errorData.message}`);
+        } catch (error) {
+          console.error("Error loading list:", error);
+          alert("An error occurred while loading your list.");
         }
       }
 

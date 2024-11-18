@@ -8,34 +8,44 @@
 /* Body Styling */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f9f9fb;
+    background-color: #f3f4f8;
     color: #333;
     margin: 0;
-    padding: 1em;
+    padding: 2em;
     line-height: 1.6;
 }
 
 /* Header and Titles */
 h1, h2 {
     text-align: center;
-    margin-bottom: 1em;
+    margin-bottom: 1.5em;
     color: #6200ea; /* Deep purple accent */
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.8em;
+    font-weight: normal;
 }
 
 /* Containers */
 div {
     margin: 1.5em auto;
     max-width: 800px;
-    padding: 1em;
+    padding: 1.5em;
     background-color: #ffffff;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Input and Buttons */
 input, button {
     width: 100%;
-    padding: 0.75em;
+    padding: 0.9em;
     margin: 0.5em 0;
     font-size: 1em;
     border: 1px solid #ccc;
@@ -54,6 +64,7 @@ button {
     color: #fff;
     cursor: pointer;
     border: none;
+    font-weight: bold;
 }
 
 button:hover {
@@ -74,17 +85,18 @@ ul li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75em 1em;
+    padding: 0.9em 1.2em;
     border: 1px solid #ddd;
-    margin: 0.5em 0;
-    border-radius: 5px;
+    margin: 0.6em 0;
+    border-radius: 8px;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 ul li:hover {
-    background-color: #f1f1f1;
+    background-color: #f8f8fc;
+    transform: scale(1.02);
 }
 
 /* Buttons inside List Items */
@@ -92,15 +104,20 @@ ul li button {
     background-color: #e91e63; /* Pink accent */
     border: none;
     color: white;
-    padding: 0.5em 1em;
-    border-radius: 3px;
+    padding: 0.6em 1.2em;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 0.85em;
+    font-weight: bold;
     transition: all 0.3s ease;
 }
 
 ul li button:hover {
     background-color: #b0003a;
+}
+
+ul li button:active {
+    background-color: #880029;
 }
 
 /* Responsive Design */
@@ -121,4 +138,37 @@ ul li button:hover {
 input[type="checkbox"]:checked + label {
     text-decoration: line-through;
     color: #888;
+}
+
+/* Labels */
+label {
+    margin-left: 0.5em;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+/* Custom Checkbox Style */
+input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #6200ea;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 0.5em;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #6200ea;
+    border-color: #3700b3;
+}
+
+/* Footer Section */
+footer {
+    text-align: center;
+    margin-top: 2em;
+    font-size: 0.9em;
+    color: #666;
 }
