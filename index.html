@@ -3,47 +3,178 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Grocery Manager</title>
+    <title>Groceries List Manager</title>
     <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <h1>Grocery Manager</h1>
-    <div id="auth-container">
-      <h2>Login</h2>
-      <input type="text" id="login-username" placeholder="Username" />
-      <input type="password" id="login-password" placeholder="Password" />
-      <button onclick="handleLogin()">Login</button>
-      <p>Don't have an account? <a href="signup.html">Sign up</a></p>
-    </div>
     <script>
-      async function handleLogin() {
-        const username = document.getElementById("login-username").value;
-        const password = document.getElementById("login-password").value;
+      const MY_APPS_URL = "https://roshansubedi.me/my-apps";
 
-        if (!username || !password) {
-          alert("Please fill in all fields");
+      async function initializeApp() {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          redirectToMyApps("Token not found. Redirecting to login.");
           return;
         }
 
-        const response = await fetch(
-          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-          }
-        );
+        try {
+          const response = await fetch(
+            "https://my-apps-backend-e1163c7dec9d.herokuapp.com/auth/user-info",
+            {
+              method: "GET",
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
 
-        if (response.ok) {
-          const data = await response.json();
-          localStorage.setItem("token", data.token); // Save token to local storage
-          //   alert("Login successful!");
-          window.location.href = "apps.html";
-        } else {
-          const errorData = await response.json();
-          alert(`Error: ${errorData.message}`);
+          if (response.ok) {
+            const data = await response.json();
+            greetUser(data.firstname);
+            loadList(); // Load the grocery list
+          } else {
+            redirectToMyApps("Session expired. Please log in again.");
+          }
+        } catch (error) {
+          console.error("Error verifying token:", error);
+          redirectToMyApps("An error occurred. Redirecting to login.");
         }
       }
+
+      function redirectToMyApps(message) {
+        alert(message);
+        localStorage.removeItem("token");
+        window.location.href = MY_APPS_URL;
+      }
+
+      function greetUser(firstName) {
+        const greeting = document.getElementById("greeting");
+        greeting.textContent = `Welcome, ${capitalizeFirstLetter(firstName)}!`;
+      }
+
+      function capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      async function loadList() {
+        const token = localStorage.getItem("token");
+
+        try {
+          const response = await fetch(
+            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list",
+            {
+              method: "GET",
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const list = document.getElementById("grocery-list");
+            list.innerHTML = ""; // Clear existing items
+
+            data.items.forEach((item) => {
+              const li = document.createElement("li");
+              li.textContent = capitalizeFirstLetter(item);
+
+              const removeButton = document.createElement("button");
+              removeButton.textContent = "Remove";
+              removeButton.onclick = () => removeItem(item, li);
+
+              li.appendChild(removeButton);
+              list.appendChild(li);
+            });
+          } else {
+            console.error("Error loading list:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching list:", error);
+        }
+      }
+
+      async function addItem() {
+        const newItemInput = document.getElementById("new-item");
+        const newItem = newItemInput.value.trim();
+
+        if (!newItem) {
+          alert("Please enter a valid item.");
+          return;
+        }
+
+        const token = localStorage.getItem("token");
+
+        try {
+          const response = await fetch(
+            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/save-list",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ items: [newItem] }),
+            }
+          );
+
+          if (response.ok) {
+            loadList(); // Refresh the list
+            newItemInput.value = ""; // Clear the input
+          } else {
+            alert("Error adding item.");
+          }
+        } catch (error) {
+          console.error("Error adding item:", error);
+        }
+      }
+
+      async function removeItem(item, listItemElement) {
+        const token = localStorage.getItem("token");
+
+        try {
+          const response = await fetch(
+            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/remove-item",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ item }),
+            }
+          );
+
+          if (response.ok) {
+            listItemElement.remove(); // Remove item from the DOM
+          } else {
+            alert("Error removing item.");
+          }
+        } catch (error) {
+          console.error("Error removing item:", error);
+        }
+      }
+
+      function handleLogout() {
+        localStorage.removeItem("token");
+        redirectToMyApps("You have been logged out.");
+      }
+
+      window.onload = initializeApp;
     </script>
+  </head>
+  <body>
+    <header>
+      <h1 id="greeting">Welcome!</h1>
+      <button onclick="handleLogout()">Logout</button>
+    </header>
+
+    <main>
+      <section id="add-item-section">
+        <h2>Add a New Item</h2>
+        <input type="text" id="new-item" placeholder="Enter a grocery item" />
+        <button onclick="addItem()">Add Item</button>
+      </section>
+
+      <section id="grocery-list-section">
+        <h2>Your Grocery List</h2>
+        <ul id="grocery-list"></ul>
+      </section>
+    </main>
   </body>
 </html>
