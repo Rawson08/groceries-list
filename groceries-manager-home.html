@@ -6,11 +6,18 @@
     <title>Groceries List Manager</title>
     <link rel="stylesheet" href="styles.css" />
     <script>
+      const MY_APPS_URL = "https://roshansubedi.me/my-apps";
+
+      function getTokenFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("token");
+      }
+
       window.onload = function () {
-        const token = localStorage.getItem("token");
+        const token = getTokenFromUrl();
         if (!token) {
           alert("You must login to access this page.");
-          window.location.href = "index.html";
+          window.location.href = MY_APPS_URL;
         }
       };
     </script>
@@ -55,9 +62,9 @@
 
     <script>
       async function getUserId() {
-        const token = localStorage.getItem("token");
+        const token = getTokenFromUrl();
         const response = await fetch(
-          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/user-info",
+          "https://my-apps-backend-e1163c7dec9d.herokuapp.com/auth/user-info",
           {
             method: "GET",
             headers: {
@@ -68,7 +75,7 @@
 
         if (response.ok) {
           const data = await response.json();
-          const username = capitalizeFirstLetter(data.username); // Get the username from the response
+          const username = capitalizeFirstLetter(data.firstname); // Get the username from the response
 
           // Update the header with the username
           const mainTitle = document.getElementById("main-title");
@@ -81,6 +88,7 @@
       function capitalizeFirstLetter(str) {
         return str.charAt(0).toUpperCase() + str.slice(1);
       }
+
       window.onload = function () {
         getUserId(); // Fetch and display user ID
         checkLogin();
@@ -92,37 +100,37 @@
 
       async function handleLogout() {
         // Optional: Notify the backend (if required)
-        const token = localStorage.getItem("token");
-        if (token) {
-          await fetch(
-            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/logout",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          ).catch((err) => console.error("Error notifying backend:", err));
-        }
+        // const token = localStorage.getItem("token");
+        // if (token) {
+        //   await fetch(
+        //     "https://groceries-list-backend-27e12ecc8182.herokuapp.com/logout",
+        //     {
+        //       method: "POST",
+        //       headers: {
+        //         Authorization: `Bearer ${token}`,
+        //       },
+        //     }
+        //   ).catch((err) => console.error("Error notifying backend:", err));
+        // }
 
-        // Clear the token from localStorage
-        localStorage.removeItem("token");
+        // // Clear the token from localStorage
+        // localStorage.removeItem("token");
 
         // Redirect to the login page
         // alert("You have been logged out successfully.");
-        window.location.href = "index.html";
+        window.location.href = "https://roshansubedi.me/my-apps/apps.html";
       }
 
       async function checkLogin() {
-        if (!localStorage.getItem("token")) {
+        if (!getTokenFromUrl()) {
           alert("You are not logged in!");
-          window.location.href = "index.html";
+          window.location.href = MY_APPS_URL;
           return;
         }
       }
 
       async function loadList() {
-        const token = localStorage.getItem("token");
+        const token = getTokenFromUrl();
 
         // Decode userId from the token
         const base64Url = token.split(".")[1];
@@ -180,7 +188,7 @@
         }
 
         // Fetch the latest list from the backend to avoid stale data
-        const token = localStorage.getItem("token");
+        const token = getTokenFromUrl();
         const base64Url = token.split(".")[1];
         const decodedToken = JSON.parse(atob(base64Url));
         const userId = decodedToken.id;
@@ -268,12 +276,14 @@
         const li = button.parentElement; // Get the parent list item
         const itemText = li.textContent.split("Remove")[0].trim(); // Extract the item text
 
-        const token = localStorage.getItem("token"); // Retrieve the JWT
-        if (!token) {
-          alert("You are not logged in!");
-          window.location.href = "index.html";
-          return;
-        }
+        const token = getTokenFromUrl();
+        checkLogin();
+        // Retrieve the JWT
+        // if (!token) {
+        //   alert("You are not logged in!");
+        //   window.location.href = "index.html";
+        //   return;
+        // }
 
         // Decode the userId from the token
         const base64Url = token.split(".")[1];
@@ -316,12 +326,12 @@
           (li) => li.textContent.split("Remove")[0].trim() // Extract text before "Remove"
         );
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-          alert("You are not logged in!");
-          window.location.href = "index.html";
-          return;
-        }
+        const token = getTokenFromUrl();
+        // if (!token) {
+        //   alert("You are not logged in!");
+        //   window.location.href = "index.html";
+        //   return;
+        // }
 
         // Decode userId from the token
         const base64Url = token.split(".")[1];
