@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="styles.css" />
     <script>
       const MY_APPS_URL = "https://roshansubedi.me/my-apps";
+      const GLM_BACKEND_URL =
+        "https://groceries-list-backend-27e12ecc8182.herokuapp.com";
+      const AUTH_BACKEND_URL =
+        "https://my-apps-backend-e1163c7dec9d.herokuapp.com";
 
       function getTokenFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -26,7 +30,7 @@
     <h1 id="main-title">Welcome to the Groceries List Manager</h1>
     <p>You are logged in!</p>
     <div id="logout-button">
-      <button onclick="handleLogout()">Logout</button>
+      <button onclick="handleLogout()">Back to App List</button>
     </div>
     <div id="creating-list">
       <h2>Create Your Own List</h2>
@@ -64,15 +68,12 @@
     <script>
       async function getUserId() {
         const token = getTokenFromUrl();
-        const response = await fetch(
-          "https://my-apps-backend-e1163c7dec9d.herokuapp.com/auth/user-info",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${AUTH_BACKEND_URL}/auth/user-info`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (response.ok) {
           const data = await response.json();
@@ -100,26 +101,7 @@
       };
 
       async function handleLogout() {
-        // Optional: Notify the backend (if required)
-        // const token = localStorage.getItem("token");
-        // if (token) {
-        //   await fetch(
-        //     "https://groceries-list-backend-27e12ecc8182.herokuapp.com/logout",
-        //     {
-        //       method: "POST",
-        //       headers: {
-        //         Authorization: `Bearer ${token}`,
-        //       },
-        //     }
-        //   ).catch((err) => console.error("Error notifying backend:", err));
-        // }
-
-        // // Clear the token from localStorage
-        // localStorage.removeItem("token");
-
-        // Redirect to the login page
-        // alert("You have been logged out successfully.");
-        window.location.href = "https://roshansubedi.me/my-apps/apps.html";
+        window.location.href = `${MY_APPS_URL}/apps.html`;
       }
 
       async function checkLogin() {
@@ -140,7 +122,7 @@
 
         try {
           const response = await fetch(
-            `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
+            `${GLM_BACKEND_URL}/get-list/${userId}`,
             {
               method: "GET",
               headers: {
@@ -194,15 +176,12 @@
         const decodedToken = JSON.parse(atob(base64Url));
         const userId = decodedToken.id;
 
-        const response = await fetch(
-          `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${GLM_BACKEND_URL}/get-list/${userId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (response.ok) {
           const data = await response.json();
@@ -214,20 +193,17 @@
           }
 
           // Add the new item to the backend
-          const saveResponse = await fetch(
-            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/save-list",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                userId,
-                items: [...existingItems, newItemValue],
-              }),
-            }
-          );
+          const saveResponse = await fetch(`${GLM_BACKEND_URL}/save-list/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              userId,
+              items: [...existingItems, newItemValue],
+            }),
+          });
 
           if (saveResponse.ok) {
             // alert("Item added successfully!");
@@ -288,17 +264,14 @@
         console.log("Attempting to remove item:", itemText);
         console.log("User ID:", userId);
 
-        const response = await fetch(
-          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/remove-item",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Send the token in the header
-            },
-            body: JSON.stringify({ userId, item: itemText }), // Send userId and item in the body
-          }
-        );
+        const response = await fetch(`${GLM_BACKEND_URL}/remove-item`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Send the token in the header
+          },
+          body: JSON.stringify({ userId, item: itemText }), // Send userId and item in the body
+        });
 
         if (response.ok) {
           console.log("Item removed successfully from backend");
@@ -333,17 +306,14 @@
         const decodedToken = JSON.parse(atob(base64Url));
         const userId = decodedToken.id;
 
-        const response = await fetch(
-          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/save-list",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userId, items }), // Send userId and items
-          }
-        );
+        const response = await fetch(`${GLM_BACKEND_URL}/save-list/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId, items }), // Send userId and items
+        });
 
         if (response.ok) {
           // alert("List saved successfully!");
