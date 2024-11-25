@@ -8,8 +8,13 @@
     <script>
       const MY_APPS_URL = "https://roshansubedi.me/my-apps";
 
+      function getTokenFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("token");
+      }
+
       async function initializeApp() {
-        const token = localStorage.getItem("token");
+        const token = getTokenFromUrl();
 
         if (!token) {
           redirectToMyApps("Token not found. Redirecting to login.");
@@ -161,7 +166,7 @@
   <body>
     <header>
       <h1 id="greeting">Welcome!</h1>
-      <button onclick="handleLogout()">Logout</button>
+      <button onclick="handleLogout()">Back to app list</button>
     </header>
 
     <main>
