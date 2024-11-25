@@ -20,6 +20,7 @@
           redirectToMyApps("Token not found. Redirecting to login.");
           return;
         }
+        console.log("Token:", token);
 
         try {
           const response = await fetch(
@@ -29,12 +30,17 @@
               headers: { Authorization: `Bearer ${token}` },
             }
           );
+          console.log("Response Status:", response.status); // Debugging
 
           if (response.ok) {
             const data = await response.json();
+            console.log("User Info:", data); // Debugging
+
             greetUser(data.firstname);
             loadList(); // Load the grocery list
           } else {
+            console.error("Unexpected error:", response.statusText);
+
             redirectToMyApps("Session expired. Please log in again.");
           }
         } catch (error) {
