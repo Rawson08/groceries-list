@@ -7,214 +7,351 @@
     <link rel="stylesheet" href="styles.css" />
     <script>
       const MY_APPS_URL = "https://roshansubedi.me/my-apps";
-      const GLM_BACKEND_URL =
-        "https://groceries-list-backend-27e12ecc8182.herokuapp.com";
-      const AUTH_BACKEND_URL =
-        "https://my-apps-backend-e1163c7dec9d.herokuapp.com";
 
-      // Helper function to get token from URL
       function getTokenFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("token");
       }
 
-      // Redirect to My Apps on error
-      function redirectToMyApps(message) {
-        // alert(message);
-        window.location.href = MY_APPS_URL;
-      }
-
-      // Fetch and greet user
-      async function getUserInfo() {
+      window.onload = function () {
         const token = getTokenFromUrl();
-        try {
-          const response = await fetch(`${AUTH_BACKEND_URL}/auth/user-info`, {
-            method: "GET",
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            greetUser(data.firstname);
-          } else {
-            redirectToMyApps("Session expired. Please log in again.");
-          }
-        } catch {
-          redirectToMyApps("An error occurred. Redirecting to login.");
+        if (!token) {
+          alert("You must login to access this page.");
+          window.location.href = MY_APPS_URL;
         }
-      }
-
-      // Greet user with their name
-      function greetUser(firstname) {
-        const mainTitle = document.getElementById("main-title");
-        mainTitle.textContent = `Welcome to Groceries List Manager, ${firstname}`;
-      }
-
-      // Fetch and load user's grocery list
-      async function loadList() {
-        const token = getTokenFromUrl();
-        const userId = decodeToken(token).id;
-
-        try {
-          const response = await fetch(
-            `${GLM_BACKEND_URL}/get-list/${userId}`,
-            {
-              method: "GET",
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
-
-          if (response.ok) {
-            const listData = await response.json();
-            renderList(listData.items || []);
-          } else {
-            alert("Error fetching your list.");
-          }
-        } catch {
-          alert("An error occurred while loading your list.");
-        }
-      }
-
-      // Render the grocery list
-      function renderList(items) {
-        const ownList = document.getElementById("ownList");
-        ownList.innerHTML = ""; // Clear existing items
-        items.forEach((item) => {
-          const li = document.createElement("li");
-          const id = `item-${Math.random().toString(36).substr(2, 9)}`;
-          li.innerHTML = `
-            <input type="checkbox" id="${id}" value="${item}">
-            <label for="${id}">${capitalize(item)}</label> 
-            <button onclick="removeFromOwnList('${item}')">Remove</button>
-          `;
-          ownList.appendChild(li);
-        });
-      }
-
-      // Add a new item to the list
-      async function addToOwnList() {
-        const newItemInput = document.getElementById("newItemInput");
-        const newItem = newItemInput.value.trim();
-        if (!newItem) {
-          alert("Item cannot be empty!");
-          return;
-        }
-
-        const token = getTokenFromUrl();
-        const userId = decodeToken(token).id;
-
-        try {
-          const response = await fetch(`${GLM_BACKEND_URL}/save-list`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userId, items: [newItem] }),
-          });
-
-          if (response.ok) {
-            loadList();
-            newItemInput.value = ""; // Clear input field
-          } else {
-            alert("Error adding item to the list.");
-          }
-        } catch {
-          alert("An error occurred while adding the item.");
-        }
-      }
-
-      // Remove an item from the list
-      async function removeFromOwnList(item) {
-        const token = getTokenFromUrl();
-        const userId = decodeToken(token).id;
-
-        try {
-          const response = await fetch(`${GLM_BACKEND_URL}/remove-item`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userId, item }),
-          });
-
-          if (response.ok) {
-            loadList();
-          } else {
-            alert("Error removing the item.");
-          }
-        } catch {
-          alert("An error occurred while removing the item.");
-        }
-      }
-
-      // Decode JWT token
-      function decodeToken(token) {
-        const base64Url = token.split(".")[1];
-        return JSON.parse(atob(base64Url));
-      }
-
-      // Capitalize the first letter of a string
-      function capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-      }
-
-      // Handle logout
-      function handleLogout() {
-        redirectToMyApps("You have been logged out.");
-      }
-
-      // Initialize the app
-      window.onload = async function () {
-        const token = getTokenFromUrl();
-        if (!token) redirectToMyApps("You must log in to access this page.");
-
-        await getUserInfo();
-        await loadList();
-
-        // Save list before page unload
-        window.addEventListener("beforeunload", saveList);
       };
-
-      // Save the grocery list
-      async function saveList() {
-        const items = Array.from(document.querySelectorAll("#ownList li")).map(
-          (li) => li.textContent.split("Remove")[0].trim()
-        );
-
-        const token = getTokenFromUrl();
-        const userId = decodeToken(token).id;
-
-        try {
-          await fetch(`${GLM_BACKEND_URL}/save-list`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ userId, items }),
-          });
-        } catch {
-          console.error("Failed to save the list.");
-        }
-      }
     </script>
   </head>
   <body>
     <h1 id="main-title">Welcome to the Groceries List Manager</h1>
-    <button onclick="handleLogout()">Go back to app list</button>
-
-    <div>
+    <p>You are logged in!</p>
+    <div id="logout-button">
+      <button onclick="handleLogout()">Logout</button>
+    </div>
+    <div id="creating-list">
       <h2>Create Your Own List</h2>
       <input
         type="text"
         id="newItemInput"
         placeholder="Enter a grocery item"
-        maxlength="20"
+        maxlength="30"
+        onkeypress="handleEnter(event)"
       />
       <button onclick="addToOwnList()">Add to My List</button>
-      <ul id="ownList"></ul>
+      <ul id="ownList">
+        <!-- User-created grocery items will appear here -->
+      </ul>
     </div>
+    <!-- Access and select from your own list -->
+    <div id="my-list">
+      <h2>My Grocery List</h2>
+      <ul id="myList">
+        <!-- Items from user's own list for selection -->
+      </ul>
+      <button onclick="addToShoppingListFromMyList()">
+        Add Selected to Shopping List
+      </button>
+    </div>
+
+    <!-- Current shopping list -->
+    <div id="shopping-list">
+      <h2>Shopping List</h2>
+      <ul id="shoppingList">
+        <!-- Shopping list items will appear here -->
+      </ul>
+    </div>
+
+    <script>
+      async function getUserId() {
+        const token = getTokenFromUrl();
+        const response = await fetch(
+          "https://my-apps-backend-e1163c7dec9d.herokuapp.com/auth/user-info",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const username = capitalizeFirstLetter(data.firstname); // Get the username from the response
+
+          // Update the header with the username
+          const mainTitle = document.getElementById("main-title");
+          mainTitle.textContent = `Welcome to Groceries List Manager, ${username}`;
+        } else {
+          alert("Error fetching user info.");
+        }
+      }
+
+      function capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      window.onload = function () {
+        getUserId(); // Fetch and display user ID
+        checkLogin();
+        loadList(); // Load user-specific list
+        window.addEventListener("beforeunload", () => {
+          saveList();
+        });
+      };
+
+      async function handleLogout() {
+        // Optional: Notify the backend (if required)
+        // const token = localStorage.getItem("token");
+        // if (token) {
+        //   await fetch(
+        //     "https://groceries-list-backend-27e12ecc8182.herokuapp.com/logout",
+        //     {
+        //       method: "POST",
+        //       headers: {
+        //         Authorization: `Bearer ${token}`,
+        //       },
+        //     }
+        //   ).catch((err) => console.error("Error notifying backend:", err));
+        // }
+
+        // // Clear the token from localStorage
+        // localStorage.removeItem("token");
+
+        // Redirect to the login page
+        // alert("You have been logged out successfully.");
+        window.location.href = "https://roshansubedi.me/my-apps/apps.html";
+      }
+
+      async function checkLogin() {
+        if (!getTokenFromUrl()) {
+          alert("You are not logged in!");
+          window.location.href = MY_APPS_URL;
+          return;
+        }
+      }
+
+      async function loadList() {
+        const token = getTokenFromUrl();
+
+        // Decode userId from the token
+        const base64Url = token.split(".")[1];
+        const decodedToken = JSON.parse(atob(base64Url)); // Decode JWT payload
+        const userId = decodedToken.id;
+
+        try {
+          const response = await fetch(
+            `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const listData = await response.json();
+            const ownList = document.getElementById("ownList");
+            ownList.innerHTML = ""; // Clear existing items
+
+            // Populate the list if items exist
+            if (listData.items && listData.items.length > 0) {
+              listData.items.forEach((item) => {
+                const li = document.createElement("li");
+                const id = `item-${Math.random().toString(36).substr(2, 9)}`; // Generate unique ID
+
+                li.innerHTML = `
+              <input type="checkbox" id="${id}" value="${item}">
+              <label for="${id}">${capitalizeFirstLetter(item)}</label> 
+              <button onclick="removeFromOwnList(this)">Remove</button>
+          `;
+                ownList.appendChild(li);
+              });
+            }
+          } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message}`);
+          }
+        } catch (error) {
+          console.error("Error loading list:", error);
+          alert("An error occurred while loading your list.");
+        }
+      }
+
+      async function addToOwnList() {
+        const newItemInput = document.getElementById("newItemInput");
+        const ownList = document.getElementById("ownList");
+
+        const newItemValue = newItemInput.value.trim();
+        if (!newItemValue) {
+          alert("Item cannot be empty!");
+          return;
+        }
+
+        // Fetch the latest list from the backend to avoid stale data
+        const token = getTokenFromUrl();
+        const base64Url = token.split(".")[1];
+        const decodedToken = JSON.parse(atob(base64Url));
+        const userId = decodedToken.id;
+
+        const response = await fetch(
+          `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const existingItems = data.items.map((item) => item.toLowerCase());
+
+          if (existingItems.includes(newItemValue.toLowerCase())) {
+            alert("This item already exists in your list!");
+            return;
+          }
+
+          // Add the new item to the backend
+          const saveResponse = await fetch(
+            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/save-list",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                userId,
+                items: [...existingItems, newItemValue],
+              }),
+            }
+          );
+
+          if (saveResponse.ok) {
+            // alert("Item added successfully!");
+            loadList(); // Re-fetch the updated list to reflect changes
+          } else {
+            alert("Error adding item to the list.");
+          }
+        } else {
+          alert("Error fetching the list.");
+        }
+
+        newItemInput.value = ""; // Clear the input field
+      }
+
+      function addToShoppingListFromMyList() {
+        const myList = document.getElementById("ownList");
+        const shoppingList = document.getElementById("shoppingList");
+
+        const items = myList.querySelectorAll('input[type="checkbox"]');
+        items.forEach((item) => {
+          if (item.checked) {
+            const existingItems = Array.from(
+              shoppingList.querySelectorAll("li")
+            ).map((li) => li.textContent.split("Remove")[0].trim()); // Exclude "Remove"
+
+            if (!existingItems.includes(item.value.trim())) {
+              const li = document.createElement("li");
+              li.innerHTML = `${item.value} 
+                        <button onclick="removeFromShoppingList(this)">Remove</button>`;
+              shoppingList.appendChild(li);
+            } else {
+              alert(`${item.value} is already in your shopping list!`);
+            }
+
+            item.checked = false; // Uncheck the checkbox
+          }
+        });
+      }
+
+      function handleEnter(event) {
+        if (event.key === "Enter") {
+          addToOwnList();
+        }
+      }
+
+      async function removeFromOwnList(button) {
+        const li = button.parentElement; // Get the parent list item
+        const itemText = li.textContent.split("Remove")[0].trim(); // Extract the item text
+
+        const token = getTokenFromUrl();
+        checkLogin();
+
+        // Decode the userId from the token
+        const base64Url = token.split(".")[1];
+        const decodedToken = JSON.parse(atob(base64Url)); // Decode JWT payload
+        const userId = decodedToken.id; // Extract the userId from the token
+
+        console.log("Attempting to remove item:", itemText);
+        console.log("User ID:", userId);
+
+        const response = await fetch(
+          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/remove-item",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Send the token in the header
+            },
+            body: JSON.stringify({ userId, item: itemText }), // Send userId and item in the body
+          }
+        );
+
+        if (response.ok) {
+          console.log("Item removed successfully from backend");
+          li.remove(); // Remove the item from the DOM
+          alert("Item removed successfully!");
+        } else {
+          const errorData = await response.json();
+          console.error("Error removing item:", errorData);
+          alert(`Error: ${errorData.message}`);
+        }
+      }
+
+      function removeFromShoppingList(button) {
+        const li = button.parentElement; // Get the list item
+        li.remove(); // Remove it from the DOM
+      }
+
+      async function saveList() {
+        const items = Array.from(document.querySelectorAll("#ownList li")).map(
+          (li) => li.textContent.split("Remove")[0].trim() // Extract text before "Remove"
+        );
+
+        const token = getTokenFromUrl();
+        // if (!token) {
+        //   alert("You are not logged in!");
+        //   window.location.href = "index.html";
+        //   return;
+        // }
+
+        // Decode userId from the token
+        const base64Url = token.split(".")[1];
+        const decodedToken = JSON.parse(atob(base64Url));
+        const userId = decodedToken.id;
+
+        const response = await fetch(
+          "https://groceries-list-backend-27e12ecc8182.herokuapp.com/save-list",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userId, items }), // Send userId and items
+          }
+        );
+
+        if (response.ok) {
+          // alert("List saved successfully!");
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.message}`);
+        }
+      }
+    </script>
   </body>
 </html>
