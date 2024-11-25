@@ -69,7 +69,7 @@
 
         try {
           const response = await fetch(
-            "https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list",
+            `https://groceries-list-backend-27e12ecc8182.herokuapp.com/get-list/${userId}`,
             {
               method: "GET",
               headers: { Authorization: `Bearer ${token}` },
