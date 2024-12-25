@@ -83,11 +83,12 @@ ul {
 
 ul li {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.9em 1.2em;
+    align-items: flex-start;
+    padding: 1em;
     border: 1px solid #ddd;
-    margin: 0.6em 0;
+    margin: 1em 0;
     border-radius: 8px;
     background-color: #fff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -109,7 +110,10 @@ ul li button {
     cursor: pointer;
     font-size: 0.85em;
     font-weight: bold;
+    margin-top: 0.5em;
     transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
 }
 
 ul li button:hover {
@@ -122,6 +126,16 @@ ul li button:active {
 
 /* Responsive Design */
 @media (min-width: 600px) {
+    ul li {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    ul li button {
+        width: auto;
+        margin-top: 0;
+    }
+
     input, button {
         width: auto;
         margin-right: 0.5em;

@@ -54,7 +54,7 @@ app.post("/save-list", authenticate, async (req, res) => {
   
     try {
       // Filter duplicates
-      const uniqueItems = [...new Set(items.map((item) => item.trim().toLowerCase()))];
+      const uniqueItems = [...new Set(items.map((item) => item.trim().toLowerCase()))].sort();
       const list = await GroceryList.findOneAndUpdate(
         { userId: req.userId },
         { items: uniqueItems },
